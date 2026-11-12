@@ -1,0 +1,25 @@
+name: Build libfreecam.so
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile for armeabi-v7a
+        run: |
+          NDK="${ANDROID_NDK_LATEST_HOME:-$ANDROID_NDK_HOME}"
+          CC=$(ls "$NDK"/toolchains/llvm/prebuilt/*/bin/armv7a-linux-androideabi21-clang | head -n1)
+          echo "Using $CC"
+          "$CC" -shared -fPIC -O2 -Wall -o libfreecam.so freecam.c -ldl
+          file libfreecam.so
+          file libfreecam.so | grep -q "ELF 32-bit LSB shared object, ARM"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libfreecam
+          path: libfreecam.so
